@@ -21,9 +21,13 @@ A standard HH:MM:SS format does not fit on a single 8x8 grid. This project uses 
 
 **Visual Map:**
 🟥 = Hours (4x5)
+
 🟦 = Minutes Tens (Progress bar, 5 LEDs)
+
 🟩 = Minutes Ones (3x5)
+
 🟨 = Seconds (3x2 repeating loop)
+
 ⬛ = Unused/Blank
 
 🟥 🟥 🟥 🟥 🟦 🟦 🟦 🟦

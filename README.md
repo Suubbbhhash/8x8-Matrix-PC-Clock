@@ -1,64 +1,53 @@
 # 8x8 LED Matrix Clock (PC-Synced)
 
-A custom-designed, real-time clock displayed on a **single 8x8 LED matrix** (MAX7219) powered by Arduino. Instead of relying on an external RTC (Real-Time Clock) hardware module, this project uses a background Python service to automatically sync the time directly from a connected PC via USB.
+A real-time clock displayed on a single MAX7219 8x8 LED matrix. It syncs time directly from a PC via a background Python script over USB, eliminating the need for an external RTC module.
 
-## Features
-* **Ultra-Compact Custom UI:** Innovatively displays Hours, Minutes, and Seconds simultaneously on just 64 pixels (8x8 grid).
-* **Smart Typography:** Features custom "squeezed" double-digits (10, 11, 12) and a progress-bar style indicator for the tens place of minutes.
-* **PC Time Auto-Sync:** A Python script runs in the background on the host PC, automatically detecting the Arduino and sending the current time via Serial.
-* **Software RTC:** Once synced, the Arduino maintains time independently using its internal `millis()` function.
-* **Plug-and-Play:** The Python script auto-detects USB connections/disconnections and heals the serial connection automatically.
+## Components
+* Arduino (Uno/Nano)
+* MAX7219 8x8 LED Matrix
+* USB Cable
 
-##  Hardware Used
-* Arduino (Uno / Nano)
-* MAX7219 8x8 LED Matrix Module
-* USB Cable (for power and PC data sync)
-* Jumper Wires
-
-### Wiring Configuration
-| MAX7219 Pin | Arduino Pin |
+## Wiring
+| MAX7219 | Arduino |
 | :--- | :--- |
 | **VCC** | 5V |
 | **GND** | GND |
 | **DIN** | D11 |
-| **CS (LOAD)** | D10 |
+| **CS** | D10 |
 | **CLK** | D13 |
 
-## 💻 Software & Dependencies
+## 8x8 Matrix Layout
+A standard HH:MM:SS format does not fit on a single 8x8 grid. This project uses a custom UI layout to squeeze all the data into 64 pixels.
 
-**Arduino:**
-* IDE: Arduino IDE
-* Library: `LedControl` by Eberhard Fahle (Install via Library Manager)
+**Visual Map:**
+🟥 = Hours (4x5)
+🟦 = Minutes Tens (Progress bar, 5 LEDs)
+🟩 = Minutes Ones (3x5)
+🟨 = Seconds (3x2 repeating loop)
+⬛ = Unused/Blank
 
-**Python:**
-* Version: Python 3.x
-* Packages: `pyserial` (Install via `pip install pyserial`)
+🟥 🟥 🟥 🟥 🟦 🟦 🟦 🟦
+🟥 🟥 🟥 🟥 ⬛ ⬛ ⬛ 🟦
+🟥 🟥 🟥 🟥 ⬛ 🟩 🟩 🟩
+🟥 🟥 🟥 🟥 ⬛ 🟩 🟩 🟩
+🟥 🟥 🟥 🟥 ⬛ 🟩 🟩 🟩
+⬛ ⬛ ⬛ ⬛ ⬛ 🟩 🟩 🟩
+🟨 🟨 🟨 ⬛ ⬛ 🟩 🟩 🟩
+🟨 🟨 🟨 ⬛ ⬛ ⬛ ⬛ ⬛
 
-## How It Works
+* **Hours (Top-Left):** Displays 1-12. Double digits (10, 11, 12).
+* **Minutes Tens (Top-Right Nook):** Lights up sequentially. If the time is 45 minutes, 4 of these LEDs will be on. 
+* **Minutes Ones (Middle-Right):** Standard 0-9 digits.
+* **Seconds (Bottom-Left):** Lights up from 1 to 6, repeating the cycle every 6 seconds.
 
-### 1. The Display Architecture
-Displaying a full HH:MM:SS clock on a single 8x8 matrix requires a specialized layout:
-* **Top Left (4x5):** Displays the current Hour (1-12).
-* **Top Right (5 LEDs):** Acts as a progress bar for the "Tens" place of the minutes (e.g., 3 LEDs lit = 30+ minutes).
-* **Middle Right (3x5):** Displays the "Ones" place of the minutes.
-* **Bottom Left (3x2):** A 6-LED repeating cycle that tracks seconds. 
+## Code & Usage
 
-### 2. The Auto-Sync Logic
-1. The Arduino boots up and starts an internal timer using `millis()`.
-2. The Python script (`auto_sync.py`) continuously scans the PC's COM ports for an Arduino or CH340 serial chip.
-3. Upon detection, Python reads the PC's system time and sends a formatted string: `TIME HH MM SS\n`.
-4. The Arduino parses this serial command, overwrites its internal time variables, and resumes ticking.
+### 1. `Matrix_Clock.ino`
+The Arduino sketch that handles the display layout and internal `millis()` timing.
+* **Setup:** Open in the Arduino IDE and install the `LedControl` library.
+* **Usage:** Upload to your Arduino board.
 
-## Installation & Setup
-
-### Step 1: Arduino Setup
-1. Open `Arduino_Code/Matrix_Clock.ino` in the Arduino IDE.
-2. Install the `LedControl` library if you haven't already.
-3. Connect your Arduino and upload the code. 
-
-### Step 2: Python Service Setup
-1. Ensure Python is installed on your PC.
-2. Open your terminal or command prompt and install the required serial library:
-   ```bash
-   pip install pyserial
-
+### 2. `auto_sync.py`
+The background Python service that fetches your PC's time and sends it to the Arduino over Serial.
+* **Setup:** Open your terminal and run `pip install pyserial`.
+* **Usage:** With the Arduino plugged in, run `python auto_sync.py`. It auto-detects the COM port, syncs the time, and runs silently in the background.
